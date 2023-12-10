@@ -1,10 +1,17 @@
 import sqlite3
 import logging
+from typing import Optional, Tuple, Any
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 
-def create_connection(db_file):
+def create_connection(db_file: str) -> Optional[sqlite3.Connection]:
+    """
+    Создает соединение с базой данных SQLite.
+
+    :param db_file: Путь к файлу базы данных
+    :return: Объект соединения или None в случае ошибки
+    """
     try:
         return sqlite3.connect(db_file)
     except Exception as e:
@@ -12,7 +19,12 @@ def create_connection(db_file):
         return None
 
 
-def create_table(conn):
+def create_table(conn: sqlite3.Connection) -> None:
+    """
+    Создает таблицу в базе данных.
+
+    :param conn: Объект соединения с базой данных
+    """
     with conn:
         try:
             c = conn.cursor()
@@ -29,7 +41,18 @@ def create_table(conn):
             logging.error(f"Ошибка при создании таблицы: {e}")
 
 
-def insert_file_data(conn, orig_path, size, last_modified, file_hash, backup_path):
+def insert_file_data(conn: sqlite3.Connection, orig_path: str, size: int,
+                     last_modified: float, file_hash: str, backup_path: str) -> None:
+    """
+    Вставляет или обновляет данные о файле в базе данных.
+
+    :param conn: Объект соединения с базой данных
+    :param orig_path: Оригинальный путь к файлу
+    :param size: Размер файла
+    :param last_modified: Время последнего изменения файла
+    :param file_hash: Хеш файла
+    :param backup_path: Путь к резервной копии файла
+    """
     with conn:
         try:
             c = conn.cursor()
@@ -41,7 +64,17 @@ def insert_file_data(conn, orig_path, size, last_modified, file_hash, backup_pat
             logging.error(f"Ошибка при вставке данных: {e}")
 
 
-def get_file_data(conn, file_hash=None, size=None, last_modified=None):
+def get_file_data(conn: sqlite3.Connection, file_hash: Optional[str] = None,
+                  size: Optional[int] = None, last_modified: Optional[float] = None) -> Optional[Tuple[Any, ...]]:
+    """
+    Получает данные о файле из базы данных.
+
+    :param conn: Объект соединения с базой данных
+    :param file_hash: Хеш файла (для поиска)
+    :param size: Размер файла (для поиска)
+    :param last_modified: Время последнего изменения файла (для поиска)
+    :return: Кортеж с данными о файле или None, если данные не найдены
+    """
     try:
         c = conn.cursor()
         if file_hash:
