@@ -49,6 +49,10 @@ def setup_gui():
         db_conn = create_connection(db_path)
         create_table(db_conn)
 
+        # Немедленный запуск процесса копирования
+        backup_files(source, destination, db_path)
+
+        # Настройка расписания для последующих копирований
         schedule.every(interval).minutes.do(backup_files, source, destination, db_path)
 
         # Запускаем расписание в отдельном потоке

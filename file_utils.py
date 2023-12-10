@@ -2,7 +2,7 @@ import hashlib
 import os
 
 
-def calculate_hash(file_path):
+def calculate_sha256(file_path):
     hash_md5 = hashlib.sha256()
     with open(file_path, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
