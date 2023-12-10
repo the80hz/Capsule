@@ -13,8 +13,23 @@ def create_connection(db_file):
 def create_table(conn):
     try:
         c = conn.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS file_hashes
-                     (path TEXT PRIMARY KEY, hash TEXT)''')
+        # Создание таблицы с двумя отдельными полями
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS file_hashes
+            (path TEXT, hash TEXT)
+        ''')
+    except Exception as e:
+        print(e)
+
+
+def insert_file_hash(conn, file_path, file_hash):
+    try:
+        c = conn.cursor()
+        # Вставка новой записи без проверки конфликтов
+        c.execute('''
+            INSERT INTO file_hashes (path, hash) VALUES (?, ?)
+        ''', (file_path, file_hash))
+        conn.commit()
     except Exception as e:
         print(e)
 
@@ -31,11 +46,12 @@ def upsert_file_hash(conn, file_path, file_hash):
         print(e)
 
 
-def get_file_hash(conn, file_path):
+def get_file_hashes(conn, file_path):
     try:
         c = conn.cursor()
+        # Получение всех записей для данного пути
         c.execute("SELECT hash FROM file_hashes WHERE path=?", (file_path,))
-        return c.fetchone()
+        return c.fetchall()
     except Exception as e:
         print(e)
         return None
