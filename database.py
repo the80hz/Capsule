@@ -13,45 +13,34 @@ def create_connection(db_file):
 def create_table(conn):
     try:
         c = conn.cursor()
-        # Создание таблицы с двумя отдельными полями
+        # Изменение структуры таблицы
         c.execute('''
-            CREATE TABLE IF NOT EXISTS file_hashes
-            (path TEXT, hash TEXT)
+            CREATE TABLE IF NOT EXISTS file_data
+            (path TEXT PRIMARY KEY, size INTEGER, last_modified REAL, hash TEXT)
         ''')
     except Exception as e:
         print(e)
 
 
-def insert_file_hash(conn, file_path, file_hash):
+def insert_file_data(conn, file_path, size, last_modified, file_hash):
     try:
         c = conn.cursor()
-        # Вставка новой записи без проверки конфликтов
+        # Вставка данных файла
         c.execute('''
-            INSERT INTO file_hashes (path, hash) VALUES (?, ?)
-        ''', (file_path, file_hash))
+            INSERT INTO file_data (path, size, last_modified, hash) 
+            VALUES (?, ?, ?, ?)
+        ''', (file_path, size, last_modified, file_hash))
         conn.commit()
     except Exception as e:
         print(e)
 
 
-def upsert_file_hash(conn, file_path, file_hash):
+def get_file_data(conn, file_path):
     try:
         c = conn.cursor()
-        c.execute('''INSERT INTO file_hashes(path, hash)
-                     VALUES(?, ?)
-                     ON CONFLICT(path)
-                     DO UPDATE SET hash=excluded.hash;''', (file_path, file_hash))
-        conn.commit()
-    except Exception as e:
-        print(e)
-
-
-def get_file_hashes(conn, file_path):
-    try:
-        c = conn.cursor()
-        # Получение всех записей для данного пути
-        c.execute("SELECT hash FROM file_hashes WHERE path=?", (file_path,))
-        return c.fetchall()
+        # Получение данных файла
+        c.execute("SELECT size, last_modified, hash FROM file_data WHERE path=?", (file_path,))
+        return c.fetchone()
     except Exception as e:
         print(e)
         return None
