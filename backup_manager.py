@@ -59,4 +59,8 @@ def process_file(src, dst, db_conn):
             shutil.copy(src, dst)
 
         insert_file_data(db_conn, src, file_size, last_modified, file_hash, dst)
-        logging.info(f"Создана жесткая ссылка для файла: {src}")
+        logging.info(f"Создана жесткая ссылка для файла: {src} на {dst}")
+
+
+if __name__ == "__main__":
+    backup_files('/path/to/source', '/path/to/destination', 'database.db')
