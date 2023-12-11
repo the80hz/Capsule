@@ -64,10 +64,17 @@ def setup_gui():
     interval_entry.grid(row=2, column=1)
 
     def create_backup_now():
-        source = source_path_entry.get()
-        destination = destination_path_entry.get()
-        db_path = os.path.join(destination, 'backup_db.sqlite')
-        backup_files(source, destination, db_path)
+        try:
+            source = source_path_entry.get()
+            destination = destination_path_entry.get()
+            db_path = os.path.join(destination, 'backup_db.sqlite')
+
+            with create_connection(db_path) as db_conn:
+                create_table(db_conn)
+                backup_files(source, destination, db_path)
+
+        except Exception as e:
+            messagebox.showerror("Ошибка", str(e))
     tk.Button(window, text="Создать Копию", command=create_backup_now).grid(row=3, column=1)
 
     def set_schedule():
