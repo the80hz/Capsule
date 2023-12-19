@@ -75,11 +75,12 @@ def process_file(src: str, dst: str, db_conn: sqlite3.Connection) -> None:
         backup_path = existing_data[2] if file_size >= 500 * 1024 * 1024 else existing_data[3]
         if os.path.exists(backup_path):
             create_hard_link(backup_path, dst)
+            logging.info(f"Создана жесткая ссылка для файла: {src} -> {dst}")
         else:
             shutil.copy(src, dst)
+            logging.info(f"Скопирован файл: {src}")
 
         insert_file_data(db_conn, src, file_size, last_modified, file_hash, dst)
-        logging.info(f"Создана жесткая ссылка для файла: {src} -> {dst}")
 
 
 if __name__ == "__main__":
