@@ -162,7 +162,3 @@ def setup_gui():
     window.protocol("WM_DELETE_WINDOW", hide_window)
 
     window.mainloop()
-
-
-if __name__ == "__main__":
-    setup_gui()

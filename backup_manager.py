@@ -81,7 +81,3 @@ def process_file(src: str, dst: str, db_conn: sqlite3.Connection) -> None:
             logging.info(f"Скопирован файл: {src}")
 
         insert_file_data(db_conn, src, file_size, last_modified, file_hash, dst)
-
-
-if __name__ == "__main__":
-    backup_files('/path/to/source', '/path/to/destination', 'database.db')

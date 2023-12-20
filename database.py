@@ -30,7 +30,7 @@ def create_table(conn: sqlite3.Connection) -> None:
             c = conn.cursor()
             c.execute('''
                     CREATE TABLE IF NOT EXISTS file_data (
-                        path TEXT PRIMARY KEY,
+                        path TEXT,
                         size INTEGER,
                         last_modified REAL,
                         hash TEXT,
@@ -53,15 +53,26 @@ def insert_file_data(conn: sqlite3.Connection, orig_path: str, size: int,
     :param file_hash: Хеш файла
     :param backup_path: Путь к резервной копии файла
     """
-    with conn:
-        try:
-            c = conn.cursor()
+    try:
+        c = conn.cursor()
+        c.execute("SELECT path, hash FROM file_data WHERE path=? AND hash=?", (orig_path, file_hash))
+        existing_record = c.fetchone()
+
+        if existing_record:
             c.execute('''
-                    INSERT OR REPLACE INTO file_data (path, size, last_modified, hash, backup_path)
-                    VALUES (?, ?, ?, ?, ?)
-                ''', (orig_path, size, last_modified, file_hash, backup_path))
-        except Exception as e:
-            logging.error(f"Ошибка при вставке данных: {e}")
+                UPDATE file_data
+                SET size = ?, last_modified = ?, backup_path = ?
+                WHERE path = ? AND hash = ?
+            ''', (size, last_modified, backup_path, orig_path, file_hash))
+        else:
+            c.execute('''
+                INSERT INTO file_data (path, size, last_modified, hash, backup_path)
+                VALUES (?, ?, ?, ?, ?)
+            ''', (orig_path, size, last_modified, file_hash, backup_path))
+
+        conn.commit()
+    except Exception as e:
+        logging.error(f"Ошибка при вставке или обновлении данных: {e}")
 
 
 def get_file_data(conn: sqlite3.Connection, file_hash: Optional[str] = None,
