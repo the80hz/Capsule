@@ -81,3 +81,35 @@ def process_file(src: str, dst: str, db_conn: sqlite3.Connection) -> None:
             logging.info(f"Скопирован файл: {src}")
 
         insert_file_data(db_conn, src, file_size, last_modified, file_hash, dst)
+
+
+def restore_backup(backup_path, orig_path):
+    """
+        Восстанавливает выбранную резервную копию.
+
+        :param backup_path: Путь до папки резервной копии
+        :param orig_path: Путь до оригинальной папки
+    """
+    print(backup_path)
+    backup_path = os.path.join(backup_path)  # Замените на актуальный путь
+    restore_path = "путь_восстановления"  # Замените на путь, куда нужно восстановить данные
+
+    if os.path.exists(restore_path):
+        # Очистка целевой директории перед восстановлением
+        for filename in os.listdir(restore_path):
+            file_path = os.path.join(restore_path, filename)
+            if os.path.isfile(file_path) or os.path.islink(file_path):
+                os.unlink(file_path)
+            elif os.path.isdir(file_path):
+                shutil.rmtree(file_path)
+
+    # Копирование файлов из резервной копии
+    for filename in os.listdir(backup_path):
+        src_path = os.path.join(backup_path, filename)
+        dst_path = os.path.join(restore_path, filename)
+        if os.path.isdir(src_path):
+            shutil.copytree(src_path, dst_path)
+        else:
+            shutil.copy2(src_path, dst_path)
+
+    logging.info(f"Восстановление из {backup_path} в {restore_path} завершено.")

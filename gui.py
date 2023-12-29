@@ -6,12 +6,28 @@ import logging
 
 import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext
+import tkinter.ttk as ttk
 
 import pystray
 from PIL import Image
 
 from database import create_connection, create_table
-from backup_manager import backup_files
+from backup_manager import backup_files, restore_backup
+
+
+def scan_backups(backup_dir):
+    """
+    Сканирует заданную директорию и возвращает список директорий резервных копий.
+    """
+    return [d for d in os.listdir(backup_dir) if os.path.isdir(os.path.join(backup_dir, d))]
+
+
+def update_backup_options(backup_combobox, backup_dir):
+    """
+    Сканирует заданную директорию и обновляет выпадающий список с резервными копиями.
+    """
+    backup_options = [d for d in os.listdir(backup_dir) if os.path.isdir(os.path.join(backup_dir, d))]
+    backup_combobox['values'] = backup_options
 
 
 def start_schedule():
@@ -54,6 +70,7 @@ def setup_gui():
         path = filedialog.askdirectory()
         source_path_entry.delete(0, tk.END)
         source_path_entry.insert(0, path)
+
     tk.Label(window, text="Источник:").grid(row=0, column=0)
     source_path_entry = tk.Entry(window, width=50)
     source_path_entry.grid(row=0, column=1)
@@ -63,6 +80,7 @@ def setup_gui():
         path = filedialog.askdirectory()
         destination_path_entry.delete(0, tk.END)
         destination_path_entry.insert(0, path)
+
     tk.Label(window, text="Назначение:").grid(row=1, column=0)
     destination_path_entry = tk.Entry(window, width=50)
     destination_path_entry.grid(row=1, column=1)
@@ -85,7 +103,8 @@ def setup_gui():
         except Exception as e:
             logging.error(f'"Ошибка", {str(e)}')
             messagebox.showerror("Ошибка", str(e))
-    tk.Button(window, text="Создать Копию", command=create_backup_now).grid(row=3, column=1)
+
+    tk.Button(window, text="Создать Копию", command=create_backup_now).grid(row=4, column=1)
 
     def set_schedule():
         try:
@@ -123,15 +142,28 @@ def setup_gui():
             schedule_button.config(text="Создать Расписание")
 
     schedule_button = tk.Button(window, text="Создать Расписание", command=create_or_delete_schedule)
-    schedule_button.grid(row=3, column=0)
+    schedule_button.grid(row=4, column=0)
 
     def toggle_log_window():
         if log_text.winfo_ismapped():
             log_text.grid_remove()
         else:
-            log_text.grid(row=4, column=0, columnspan=3, sticky="ew")
+            log_text.grid(row=5, column=0, columnspan=4, sticky="ew")
 
-    tk.Button(window, text="Показать Лог", command=toggle_log_window).grid(row=3, column=2)
+    tk.Button(window, text="Показать Лог", command=toggle_log_window).grid(row=4, column=2)
+
+    # Выпадающий список для выбора резервной копии
+    backup_var = tk.StringVar()
+    backup_combobox = ttk.Combobox(window, textvariable=backup_var)
+    backup_combobox.grid(row=3, column=1)
+
+    # Кнопка для обновления списка копий
+    tk.Button(window, text="Сканировать копии",
+              command=lambda: update_backup_options(backup_combobox, "путь_к_папке_с_копиями")).grid(row=3, column=0)
+
+    # Кнопка для восстановления
+    tk.Button(window, text="Восстановить из копии", command=lambda: restore_backup(backup_var.get())).grid(row=3,
+                                                                                                           column=2)
 
     def exit_application(icon):
         icon.stop()
