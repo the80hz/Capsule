@@ -159,7 +159,7 @@ def setup_gui():
 
     # Кнопка для обновления списка копий
     tk.Button(window, text="Сканировать копии",
-              command=lambda: update_backup_options(backup_combobox, "путь_к_папке_с_копиями")).grid(row=3, column=0)
+              command=lambda: update_backup_options(backup_combobox, destination_path_entry.get())).grid(row=3, column=0)
 
     # Кнопка для восстановления
     tk.Button(window, text="Восстановить из копии", command=lambda: restore_backup(backup_var.get())).grid(row=3,
