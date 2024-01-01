@@ -152,18 +152,17 @@ def setup_gui():
 
     tk.Button(window, text="Показать Лог", command=toggle_log_window).grid(row=4, column=2)
 
-    # Выпадающий список для выбора резервной копии
     backup_var = tk.StringVar()
     backup_combobox = ttk.Combobox(window, textvariable=backup_var)
     backup_combobox.grid(row=3, column=1)
 
-    # Кнопка для обновления списка копий
     tk.Button(window, text="Сканировать копии",
               command=lambda: update_backup_options(backup_combobox, destination_path_entry.get())).grid(row=3, column=0)
 
     # Кнопка для восстановления
-    tk.Button(window, text="Восстановить из копии", command=lambda: restore_backup(backup_var.get())).grid(row=3,
-                                                                                                           column=2)
+    tk.Button(window, text="Восстановить из копии",
+              command=lambda: restore_backup(os.path.join(destination_path_entry.get(), backup_var.get()),
+                                             source_path_entry.get())).grid(row=3, column=2)
 
     def exit_application(icon):
         icon.stop()

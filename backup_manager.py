@@ -90,9 +90,8 @@ def restore_backup(backup_path, orig_path):
         :param backup_path: Путь до папки резервной копии
         :param orig_path: Путь до оригинальной папки
     """
-    print(backup_path)
-    backup_path = os.path.join(backup_path)  # Замените на актуальный путь
-    restore_path = "путь_восстановления"  # Замените на путь, куда нужно восстановить данные
+    print(backup_path, orig_path)
+    restore_path = orig_path
 
     if os.path.exists(restore_path):
         # Очистка целевой директории перед восстановлением
