@@ -5,7 +5,7 @@ import sqlite3
 from datetime import datetime
 
 from file_utils import calculate_sha256, create_hard_link
-from database import create_connection, insert_file_data, get_file_data
+from database import create_connection, insert_file_data, get_file_data, get_excluded_directories
 
 logging.basicConfig(filename='backup_log.log', level=logging.INFO,
                     format='%(asctime)s:%(levelname)s:%(message)s')
@@ -22,29 +22,36 @@ def backup_files(source: str, destination: str, db_file: str) -> None:
     logging.info(f"Начало копирования из {source} в {destination}")
     try:
         db_conn = create_connection(db_file)
+        excluded_dirs = get_excluded_directories(db_conn)
         timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         version_path = os.path.join(destination, timestamp)
-        recursive_copy(source, version_path, db_conn)
+        recursive_copy(source, version_path, db_conn, excluded_dirs)
         db_conn.close()
         logging.info(f"Копирование завершено")
     except Exception as e:
         logging.error(f"Ошибка при копировании: {e}")
 
 
-def recursive_copy(src: str, dst: str, db_conn: sqlite3.Connection) -> None:
+def recursive_copy(src: str, dst: str, db_conn: sqlite3.Connection, excluded_dirs: list) -> None:
     """
     Рекурсивно копирует файлы и директории.
 
     :param src: Исходный путь файла или директории
     :param dst: Путь назначения
     :param db_conn: Соединение с базой данных
+    :param excluded_dirs: Список директорий, которые следует исключить
     """
+    # Проверяем, не находится ли директория в списке исключенных
+    if any(os.path.abspath(src).startswith(os.path.abspath(ex_dir)) for ex_dir in excluded_dirs):
+        logging.info(f"Директория {src} пропущена (находится в списке исключенных)")
+        return
+
     try:
         if os.path.isdir(src):
             if not os.path.exists(dst):
                 os.makedirs(dst)
             for file in os.listdir(src):
-                recursive_copy(os.path.join(src, file), os.path.join(dst, file), db_conn)
+                recursive_copy(os.path.join(src, file), os.path.join(dst, file), db_conn, excluded_dirs)
         else:
             process_file(src, dst, db_conn)
     except Exception as e:
